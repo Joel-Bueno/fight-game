@@ -1,0 +1,32 @@
+#!/bin/bash
+echo "========================================"
+echo "  FIGHT GAME - Instalador Linux/Mac"
+echo "========================================"
+
+# Crear estructura de carpetas
+echo "Creando carpetas..."
+mkdir -p css js assets/images assets/sounds server
+
+echo ""
+echo "========================================"
+echo "Carpetas creadas correctamente:"
+echo "  css/"
+echo "  js/"
+echo "  assets/images/"
+echo "  assets/sounds/"
+echo "  server/"
+echo "========================================"
+echo ""
+echo "PASO SIGUIENTE:"
+echo "  Copia cada archivo .js en js/"
+echo "  Copia style.css en css/"
+echo "  Copia index.html aqui (raiz)"
+echo ""
+echo "Para correr el servidor local:"
+echo "  cd server"
+echo "  pnpm install"
+echo "  pnpm start"
+echo ""
+echo "Para abrir el juego sin servidor:"
+echo "  Abre index.html en tu navegador"
+echo "========================================"

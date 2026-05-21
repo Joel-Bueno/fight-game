@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⚔️ Fight Game</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ═══════════ MENÚ PRINCIPAL ═══════════ -->
+  <div id="screen-menu" class="screen active">
+    <h1 class="game-title">⚔️ FIGHT GAME</h1>
+    <div class="menu-buttons">
+      <button class="btn"           onclick="UI.goMode()">▶ JUGAR</button>
+      <button class="btn btn-secondary" onclick="UI.goOptions()">⚙ OPCIONES</button>
+      <button class="btn btn-secondary" onclick="UI.goCredits()">★ CRÉDITOS</button>
+    </div>
+    <div class="version">v3.0 · 6 Personajes · 6 Escenarios · Online P2P</div>
+  </div>
+
+  <!-- ═══════════ SELECCIÓN DE MODO ═══════════ -->
+  <div id="screen-mode" class="screen">
+    <h2>SELECCIONAR MODO</h2>
+    <div class="menu-buttons">
+      <button class="btn"        onclick="Game.selectMode('bot')">🤖 vs BOT</button>
+      <button class="btn"        onclick="Game.selectMode('local')">👥 LOCAL — 2 Jugadores</button>
+      <button class="btn"        onclick="Game.selectMode('online')">🌐 ONLINE — Código de Sala</button>
+      <button class="btn btn-back" onclick="UI.goMenu()">← ATRÁS</button>
+    </div>
+  </div>
+
+  <!-- ═══════════ DIFICULTAD BOT ═══════════ -->
+  <div id="screen-difficulty" class="screen">
+    <h2>DIFICULTAD DEL BOT</h2>
+    <div class="difficulty-cards">
+      <div class="diff-card easy"   onclick="Game.selectDifficulty('easy')">
+        <div class="diff-emoji">😊</div>
+        <div class="diff-name">FÁCIL</div>
+        <div class="diff-desc">Lento, poca precisión</div>
+      </div>
+      <div class="diff-card medium" onclick="Game.selectDifficulty('medium')">
+        <div class="diff-emoji">😐</div>
+        <div class="diff-name">MEDIO</div>
+        <div class="diff-desc">Equilibrado, bloquea a veces</div>
+      </div>
+      <div class="diff-card hard"   onclick="Game.selectDifficulty('hard')">
+        <div class="diff-emoji">😈</div>
+        <div class="diff-name">DIFÍCIL</div>
+        <div class="diff-desc">Rápido, bloquea y esquiva</div>
+      </div>
+    </div>
+    <button class="btn btn-back" onclick="UI.goMode()">← ATRÁS</button>
+  </div>
+
+  <!-- ═══════════ ONLINE ═══════════ -->
+  <div id="screen-online" class="screen">
+    <h2>🌐 MODO ONLINE</h2>
+    <div class="online-options">
+      <button class="btn" onclick="Online.createRoom()">➕ CREAR SALA</button>
+      <div class="divider">— o —</div>
+      <div class="join-section">
+        <input type="text" id="room-code-input"
+               placeholder="CÓDIGO (6 letras)"
+               maxlength="6"
+               oninput="this.value=this.value.toUpperCase()">
+        <button class="btn" onclick="Online.joinRoom()">🔗 UNIRSE</button>
+      </div>
+      <div id="room-info"     class="room-info hidden"></div>
+      <div id="online-status" class="online-status"></div>
+    </div>
+    <button class="btn btn-back" onclick="UI.goMode()">← ATRÁS</button>
+  </div>
+
+  <!-- ═══════════ SELECCIÓN DE PERSONAJE ═══════════ -->
+  <div id="screen-characters" class="screen">
+    <h2 id="char-select-title">JUGADOR 1 — ELIGE TU PERSONAJE</h2>
+    <div class="character-grid" id="char-grid"></div>
+    <div class="selected-info"  id="selected-info">
+      Pasa el cursor sobre un personaje para ver su descripción
+    </div>
+    <button class="btn btn-back" onclick="Game.backFromCharSelect()">← ATRÁS</button>
+  </div>
+
+  <!-- ═══════════ JUEGO ═══════════ -->
+  <div id="screen-game" class="screen">
+    <div class="hud">
+      <!-- HUD Jugador 1 -->
+      <div class="player-hud">
+        <span class="player-name" id="p1-name">P1</span>
+        <div class="health-bar-wrap">
+          <div class="health-bar"    id="health-bar-p1"></div>
+        </div>
+        <span class="health-text"   id="hp-p1">200</span>
+      </div>
+      <!-- Centro: round, timer, mute -->
+      <div class="round-info">
+        <span id="round-display">ROUND 1</span>
+        <span id="timer-display">60</span>
+        <button id="mute-btn" class="mute-btn" onclick="AudioMgr.toggle()">🔊</button>
+      </div>
+      <!-- HUD Jugador 2 -->
+      <div class="player-hud right">
+        <span class="health-text"   id="hp-p2">200</span>
+        <div class="health-bar-wrap">
+          <div class="health-bar p2" id="health-bar-p2"></div>
+        </div>
+        <span class="player-name"   id="p2-name">P2</span>
+      </div>
+    </div>
+
+    <!-- Nombre del escenario -->
+    <div id="stage-name" class="stage-name"></div>
+
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+
+    <div class="controls-hint">
+      <span>J1: WASD · F ataque · G especial · S bloquear</span>
+      <span>J2: ↑↓←→ · K ataque · L especial · ↓ bloquear</span>
+    </div>
+    <div id="round-message" class="round-message hidden"></div>
+  </div>
+
+  <!-- ═══════════ OPCIONES ═══════════ -->
+  <div id="screen-options" class="screen">
+    <h2>⚙ OPCIONES</h2>
+    <div class="options-panel">
+      <label>🎵 Volumen Música
+        <input type="range" min="0" max="100" value="50"
+               oninput="AudioMgr.setMusicVol(this.value/100)">
+      </label>
+      <label>🔔 Volumen Efectos
+        <input type="range" min="0" max="100" value="70"
+               oninput="AudioMgr.setSFXVol(this.value/100)">
+      </label>
+    </div>
+    <button class="btn btn-back" onclick="UI.goMenu()">← ATRÁS</button>
+  </div>
+
+  <!-- ═══════════ CRÉDITOS ═══════════ -->
+  <div id="screen-credits" class="screen">
+    <h2>★ CRÉDITOS</h2>
+    <div class="credits-text">
+      <p>⚔️ Fight Game v3.0</p>
+      <p>Motor: HTML5 Canvas puro · Sin frameworks</p>
+      <p>Online P2P: PeerJS (WebRTC · sin servidor)</p>
+      <p>6 Personajes dibujados en Canvas</p>
+      <p>6 Escenarios generados por código</p>
+      <p>Edita <code>js/fighters.js</code> → stats y diseño</p>
+      <p>Edita <code>js/stages.js</code> → escenarios</p>
+      <p>Música: pon tus .mp3 en <code>assets/sounds/</code></p>
+    </div>
+    <button class="btn btn-back" onclick="UI.goMenu()">← ATRÁS</button>
+  </div>
+
+</div><!-- /app -->
+
+<!--
+  ORDEN DE CARGA (no cambiar el orden):
+  1. PeerJS (CDN)   → online P2P
+  2. fighters.js    → FIGHTERS[]
+  3. stages.js      → STAGES[] + getRandomStage()
+  4. bot.js         → class Bot
+  5. audio.js       → AudioMgr
+  6. online.js      → Online{}
+  7. game.js        → motor principal (usa todo lo anterior)
+-->
+<script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+<script src="js/fighters.js"></script>
+<script src="js/stages.js"></script>
+<script src="js/bot.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/online.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
